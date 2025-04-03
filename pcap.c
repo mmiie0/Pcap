@@ -69,15 +69,12 @@ void got_packet(unsigned char *args, const struct pcap_pkthdr *header,
 	// 이더넷 프레임에서 IP 패킷을 추출하는 과정
   // 이더넷 헤더에서 상위 프로토콜이 IPv4(0x0800)인지 확인(IP, ARP... 중에 IP만)
   if (ntohs(eth->ether_type) == 0x0800) { // 0x0800은 IPv4의 EtherType 값
-    // IP 헤더 위치를 계산하여 변환
-    struct ipheader * ip = (struct ipheader *)
-                           (packet + sizeof(struct ethheader)); 
 
 		// Ethernet 출력
     printf("\nSource MAC: %s\n", ether_ntoa((struct ether_addr *)eth->ether_shost));
     printf("Destination MAC: %s\n\n", ether_ntoa((struct ether_addr *)eth->ether_dhost));
 
-	// IP 출력
+	  // IP 출력
     printf("Source IP: %s\n", inet_ntoa(ip->iph_sourceip));
     printf("Destination IP: %s\n\n", inet_ntoa(ip->iph_destip));
    
@@ -89,13 +86,6 @@ void got_packet(unsigned char *args, const struct pcap_pkthdr *header,
     // TCP 데이터 (페이로드) 위치 찾기
     unsigned char *payload = (unsigned char *)(packet + sizeof(struct ethheader) + ip->iph_ihl * 4 + TH_OFF(tcp) * 4);
 
-    // // HTTP 메시지는 따로 출력 (GET, POST, HTTP/1.1 등으로 시작하는지 체크)
-    // if (payload[0] == 'G' && payload[1] == 'E' && payload[2] == 'T') {
-    //     printf("HTTP Request: GET detected!\n");
-    // } else if (payload[0] == 'P' && payload[1] == 'O' && payload[2] == 'S' && payload[3] == 'T') {
-    //     printf("HTTP Request: POST detected!\n");
-    // } else if (payload[0] == 'H' && payload[1] == 'T' && payload[2] == 'T' && payload[3] == 'P') {
-    //     printf("HTTP Response detected!\n");
     if (ntohs(tcp->tcp_dport)==80 || ntohs(tcp->tcp_sport)==80) {
         printf("HTTP!!\n");
     }
@@ -145,6 +135,7 @@ int main()
   // 세션 핸들, 캡처할 패킷 개수(-1이면 무한정 캡처), 패킷을 처리할 함수, 추가 데이터(일반적으로 null)
   pcap_loop(handle, -1, got_packet, NULL);
 
+  // ========== 패킷 캡처 시작 ==========
   // 캡처 종료 후, 사용한 리소스 정리
   pcap_close(handle);
   return 0;
